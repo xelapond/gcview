@@ -251,7 +251,9 @@ def on_mouse_drag(x, y, dx, dy, buttons, mods):
         glTranslatef(dx*(gzl**-1), dy*(gzl**-1), 0)
     if buttons == 4:
         #Rotation.  Not sure why, maybe desirable in some obscure instances.
-        glRotatef(dx, 0, 1, 0)
+        glTranslatef(x, y, 0)
+        glRotatef(dx, 0, 0, 1)
+        glTranslatef(-x, -y, 0)
 
 #TODO: Make this function do something
 def on_mouse_scroll(x, y, dx, dy):
