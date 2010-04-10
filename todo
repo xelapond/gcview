@@ -1,0 +1,24 @@
+#+TITLE: PCBRouter Todo
+
+* GView
+** UI
+*** TODO Don't draw from 0, 0 to the first point
+    This happens because the first call is to move the quill, which sets x and y to zero because they init to that
+    FFFFUUU
+*** DONE Implement Zooming
+**** TODO Implement automatic centering and scaling
+*** TODO Implement Distance and Measurement
+*** DONE [#C] Display Some info about the design
+*** TODO [#B] Implement show the order of operations
+** Parser
+*** TODO Implement Multiple commands on one line
+** G Codes
+*** TODO [#C] Implement G02 (CW Interp)
+*** TODO [#C] Implement G03 (CCW Interp)
+*** DONE [#A] Implement G21 (Programming in millimeters)
+*** DONE [#A] Implement G20 (Programming in Inches)
+*** TODO [#B] Implement G28 (Return to Home Position)
+*** DONE [#A] Implement G90 (Absolute)
+*** DONE [#A] Implement G91 (Relative)
+*** TODO [#B] Implement G92 (Define Absolute Zero)
+    
