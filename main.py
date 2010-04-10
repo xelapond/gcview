@@ -74,11 +74,7 @@ G98/G99 Return to Initial Z plane/R plane in canned cycle
 LERP_COLOR = (1, 1, 1, 1)
 RAPID_POS_COLOR = (1, 0, 0, 1)
 
-#Get a sample file
-sf = open('sample/untitledtop.nc')
-sfc = sf.read()
-
-#Regex for finding a comment
+#Regex for finding a G-Code comment
 fc = re.compile('\(.*\)')
 
 #Return a list of all the comments(as strings)
@@ -91,25 +87,8 @@ def remove_comments(t):
 
     return t
 
-#TODO:
-'''
-Use pyglet -> Display lists
-
-Write a function to convert applicable gcode into a display list
-Then manipulate this
-'''
-
-def dRect(pos, size, rgba):
-    glColor4f(*rgba)
-
-    #glBegin(GL_POLYGON)
-    glVertex2f(pos[0], pos[1])
-    glVertex2f(pos[0], pos[1] + size[1])
-    glVertex2f(pos[0] + size[0], pos[1] + size[1])
-    glVertex2f(pos[0] + size[0], pos[1])
-    #glEnd()
-    #glFlush()
-
+#I Think this is depreciated, but maybe not
+#We'll see
 cdict = {
     .5  : (1, 0, 0), 
     .02 : (0, 0, 0),
@@ -117,28 +96,7 @@ cdict = {
      'EXCEPTION' : (1, 1, 1)
 }
 
-
-def test(t):
-    #win.clear()
-    
-    '''
-    glLoadIdentity()
-    glViewport(-1, -1, 1, 1)
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    glFrustum(-width/2, width/2, -height/2, height/2, .1, 100)
-    glScalef(5000, 5000, 1)
-    glTranslatef(0, 0, -500)
-    glMatrixMode(GL_MODELVIEW)
-    '''
-
-
- 
-    #win.flip()
-
-
 def draw_vertex(args):
-    global zl
     k = args.keys()
     '''
     Lots of stuff happens here.
@@ -167,7 +125,6 @@ def draw_vertex(args):
         print 'Could not execute command, no ' + str(t) + ' Coordinate(s)'
         return False, p
 
-    #print [x*200 for x in p]
     glVertex2f(p[0]*400, p[1]*400)
     return True
     
@@ -197,24 +154,9 @@ fdict = {
    'G01' : draw_lerp,
 }
 
-#TODO:
-'''
-STARTDISPLAYLIST()
-args = {'OX':0, 'OY':0, 'OZ':0}
-for l in lines:
-    pred, args = PARSEIT()
-    args['OX'], args['OY'], args['OZ'], args['OC'] = OZ, OY, OZ, [pred, args]
-    fdict[pred](args)
-
-ENDDISPLAYLIST()
-'''
-
 def add_dict(d1, d2):
     #TODO: Take more then one dict(In one line)
-    #WORKS
     return dict(d1.items() + d2.items())
-
-
 
 def start_display_list():
     dlist = glGenLists(1)
@@ -232,10 +174,8 @@ def args2dict(args):
     Example:
        ['X1.010', 'Y0.045'] -> {'X':1.010, 'Y':0.045}
     '''
-    #WORKS
     return dict((exp[:1], float(exp[1:])) for exp in args)
 
-###TODO: Replace the fdict reference call with a glVertex for testing, it doesn't work:/
 def parse_line(line):
     #TODO: Implement multiple commands per line
     #Do this in one of two ways
@@ -271,10 +211,6 @@ def gen_display_list(lines):
     end_display_list()
     return dlist
 
-
-nc = remove_comments(sfc).split('\n')
-nc = filter(lambda x: x != '', nc)
-dlist = gen_display_list(nc)
 '''
 rect = glGenLists(1)
 glNewList(rect, GL_COMPILE)
@@ -341,58 +277,28 @@ def on_mouse_scroll(x, y, dx, dy):
     zl += 10*dy
 
 
-def on_draw(*argarg):
-    global win, ne, dlist
+def on_draw(t, win, dlist):
+    #global win, ne, dlist
     win.clear()
 
-    glColor3f(1, 0, 0)
-
-#    glBegin(GL_LINE_STRIP)
-#    #dRect((0, 0), (400, 400), (.5, .2, .6, 1))
-#    gen_display_list(nc)
-#    glEnd()
-
- #   glBegin(GL_LINE_STRIP)
-    #gen_display_list(nc)
-   # glEnd()
-    
     glCallList(dlist)
     
     win.flip()
 
 
-width, height = 400, 400
-zl = 0
-
 if __name__ == '__main__':
+    #Get a G-Code file
+    file = open('sample/untitledtop.nc')
+    inp = file.read()
+
+
+    nc = filter(lambda x: x != '', remove_comments(inp).split('\n'))
+    dlist = gen_display_list(nc)
+
     win = pyglet.window.Window(400, 400)
-
-    '''
-    glViewport(-1, -1, 1, 1)
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    glFrustum(-width/2, width/2, -height/2, height/2, .1, 100)
-    glScalef(5000, 5000, 1)
-    glTranslatef(0, 0, -500)
-    glMatrixMode(GL_MODELVIEW)
-    '''
-
-    nc = remove_comments(sfc).split('\n')
-    nc = filter(lambda x: x != '', nc)
-
-    #glShadeModel(GL_FLAT)
-    #glClearColor(0, 0, 0, 0)
-
+    
     win.on_mouse_drag = on_mouse_drag
     win.on_mouse_scroll = on_mouse_scroll
 
-
-    
-   # while 1:
-   #     on_draw()
-   #     win.dispatch_events()
-        #win.dispatch_event('on_mouse_drag')
-
-#    win.on_draw = on_draw
-    pyglet.clock.schedule(on_draw)
+    pyglet.clock.schedule(on_draw, win, dlist)
     pyglet.app.run()
