@@ -154,10 +154,30 @@ def draw_lerp(args):
 
     return draw_vertex(args)
 
+def set_imperial(args):
+    global inches
+    inches = True
+
+def set_metric(args):
+    global inches
+    inches = False
+
+def set_absolute(args):
+    global absolute
+    absolute = True
+
+def set_incremental(args):
+    global absolute
+    absolute = False
+
 #Maps G-Codes to python functions
 fdict = {
    'G00' : draw_rapid,
    'G01' : draw_lerp,
+   'G20' : set_imperial,
+   'G21' : set_metric,
+   'G90' : set_absolute,
+   'G91' : set_incremental
 }
 
 def add_dict(d1, d2):
@@ -194,7 +214,7 @@ def parse_line(line):
     args = args2dict(exp[1:])
     return pred, args
 
-def gen_display_list(lines):
+def parse_file(lines):
     dlist = start_display_list()
     glBegin(GL_LINE_STRIP)
     args = {'X':0, 'Y':0, 'Z':0}
@@ -203,6 +223,10 @@ def gen_display_list(lines):
         epred, eargs = parse_line(l)
         args['OX'], args['OY'], args['OZ'], args['OC'] = args['X'], args['Y'], args['Z'], [epred, eargs]
         args = add_dict(args, eargs)
+        if not absolute:
+            #If incremental
+            for x in ['X', 'Y', 'Z']:
+                args[c] = args['O' + c] + args[c]
         if epred in fdict.keys():
             fdict[epred](args)
         else:
@@ -242,9 +266,11 @@ if __name__ == '__main__':
     file = open('sample/untitledtop.nc')
     inp = file.read()
 
-
     nc = filter(lambda x: x != '', remove_comments(inp).split('\n'))
-    dlist = gen_display_list(nc)
+    dlist = parse_file(nc)
+
+    print 'Coordinates: ' + {True:'Absolute', False:'Incremental'}[absolute]
+    print 'Units: ' + {True:'Imperial', False:'Metric'}[inches]
 
     win = pyglet.window.Window(800, 800)
     
