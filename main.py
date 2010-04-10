@@ -1,3 +1,4 @@
+from __future__ import division
 import random
 import sys
 import re
@@ -76,6 +77,9 @@ G98/G99 Return to Initial Z plane/R plane in canned cycle
 #Global states:(
 absolute = True
 inches = True
+
+#Zoom level
+gzl = 1
 
 LERP_COLOR = (1, 1, 1, 1)
 RAPID_POS_COLOR = (1, 0, 0, 0)
@@ -241,9 +245,10 @@ def parse_file(lines):
     return dlist
 
 def on_mouse_drag(x, y, dx, dy, buttons, mods):
+    global gzl
     if buttons == 1:
         #For panning
-        glTranslatef(dx, dy, 0)
+        glTranslatef(dx*(gzl**-1), dy*(gzl**-1), 0)
     if buttons == 4:
         #Rotation.  Not sure why, maybe desirable in some obscure instances.
         glRotatef(dx, 0, 1, 0)
@@ -252,9 +257,14 @@ def on_mouse_drag(x, y, dx, dy, buttons, mods):
 def on_mouse_scroll(x, y, dx, dy):
     #This will have to be a translation or a scale on the OpenGL Level
     #as we calculate all the graphics at the beginning of the program
-    #global zl
-    #zl += 10*dy
-    pass
+    global gzl #This is only a global variable so we can multiply panning, to make it work on a 1:1 ratio at all zoom levels
+    zl = 1 + (dy/10)
+    gzl *= zl
+    print 'Zoom Level: ' + str(gzl)
+    #Translate to the mouse so we don't zoom about the origin
+    glTranslatef(x, y, 0)
+    glScalef(zl, zl, zl)
+    glTranslatef(-x, -y, 0)
 
 
 def on_draw(t, win, dlist):
@@ -264,18 +274,9 @@ def on_draw(t, win, dlist):
     
     win.flip()
 
+width, height = 800, 800
 
 if __name__ == '__main__':
-    glViewport(0, 0, width, height)
-    glMatrixMode(gl.GL_PROJECTION)
-    glLoadIdentity()
-    glFrustum(-width/2, width/2, -height/2, height/2, .1, 1000)
-    glScalef(5000,5000,1)
-    #glTranslatef(-width/2,-height/2,-500)
-    glTranslatef(0, 0, -500)
-    glMatrixMode(gl.GL_MODELVIEW)
-
-
     #Get a G-Code file
     file = open(sys.argv[1])
     inp = file.read()
@@ -287,7 +288,16 @@ if __name__ == '__main__':
     print 'Units: ' + {True:'Imperial', False:'Metric'}[inches]
 
     win = pyglet.window.Window(800, 800)
-    
+    ''' 
+    glViewport(0, 0, width, height)
+    glMatrixMode(gl.GL_PROJECTION)
+    glLoadIdentity()
+    glFrustum(-width/2, width/2, -height/2, height/2, .1, 1000)
+    glScalef(5000,5000,1)
+    #glTranslatef(-width/2,-height/2,-500)
+    glTranslatef(0, 0, -500)
+    glMatrixMode(gl.GL_MODELVIEW)
+    '''
     win.on_mouse_drag = on_mouse_drag
     win.on_mouse_scroll = on_mouse_scroll
 
