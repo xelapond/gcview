@@ -1,0 +1,8 @@
+GCView 0.1 README
+Alex Teiche - 4/9/10
+==================
+
+GCView is a 2D G-Code viewer written in Python and targeted at displaying G-Code for isolation-routing paths for PCBs.  In the future it may gain some 3D capabilities.
+
+GPL v2.0 License for now.
+
