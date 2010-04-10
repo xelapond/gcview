@@ -78,7 +78,7 @@ absolute = True
 inches = True
 
 LERP_COLOR = (1, 1, 1, 1)
-RAPID_POS_COLOR = (1, 0, 0, 1)
+RAPID_POS_COLOR = (1, 0, 0, 0)
 
 #Regex for finding a G-Code comment
 fc = re.compile('\(.*\)')
@@ -209,7 +209,8 @@ def parse_line(line):
     try:
         exp.remove('')
     except:
-        print 'THERE IS NO \'\' TO REMOVE'
+        if '-v' in sys.argv:
+            print 'THERE IS NO \'\' TO REMOVE'
     pred = exp[0]
     args = args2dict(exp[1:])
     return pred, args
@@ -231,7 +232,9 @@ def parse_file(lines):
             fdict[epred](args)
         else:
             #This is just so I know what to implement
-            print epred
+            if '-v' in sys.argv:
+                print epred
+            
             
     glEnd()
     glEndList()
@@ -243,14 +246,15 @@ def on_mouse_drag(x, y, dx, dy, buttons, mods):
         glTranslatef(dx, dy, 0)
     if buttons == 4:
         #Rotation.  Not sure why, maybe desirable in some obscure instances.
-        glRotatef(dx, 0, 0, 1)
+        glRotatef(dx, 0, 1, 0)
 
 #TODO: Make this function do something
 def on_mouse_scroll(x, y, dx, dy):
     #This will have to be a translation or a scale on the OpenGL Level
     #as we calculate all the graphics at the beginning of the program
-    global zl
-    zl += 10*dy
+    #global zl
+    #zl += 10*dy
+    pass
 
 
 def on_draw(t, win, dlist):
@@ -262,8 +266,18 @@ def on_draw(t, win, dlist):
 
 
 if __name__ == '__main__':
+    glViewport(0, 0, width, height)
+    glMatrixMode(gl.GL_PROJECTION)
+    glLoadIdentity()
+    glFrustum(-width/2, width/2, -height/2, height/2, .1, 1000)
+    glScalef(5000,5000,1)
+    #glTranslatef(-width/2,-height/2,-500)
+    glTranslatef(0, 0, -500)
+    glMatrixMode(gl.GL_MODELVIEW)
+
+
     #Get a G-Code file
-    file = open('sample/untitledtop.nc')
+    file = open(sys.argv[1])
     inp = file.read()
 
     nc = filter(lambda x: x != '', remove_comments(inp).split('\n'))
