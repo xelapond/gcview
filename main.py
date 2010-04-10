@@ -252,7 +252,8 @@ def parse_line(line):
     return pred, args
 
 def gen_display_list(lines):
-    #dlist = start_display_list()
+    dlist = start_display_list()
+    glBegin(GL_LINE_STRIP)
     args = {'OX':0, 'OY':0, 'OZ':0, 'X':0, 'Y':0, 'Z':0}
     for l in lines:
         #The 'e' represents the args and predicate from the expression
@@ -265,14 +266,15 @@ def gen_display_list(lines):
             fdict[epred](args)
         else:
             print epred
-
-    #end_display_list()
-    #return dlist
+            
+    glEnd()
+    end_display_list()
+    return dlist
 
 
 nc = remove_comments(sfc).split('\n')
 nc = filter(lambda x: x != '', nc)
-#dlist = gen_display_list(nc)
+dlist = gen_display_list(nc)
 '''
 rect = glGenLists(1)
 glNewList(rect, GL_COMPILE)
@@ -345,16 +347,16 @@ def on_draw(*argarg):
 
     glColor3f(1, 0, 0)
 
-    glBegin(GL_LINE_STRIP)
-    #dRect((0, 0), (400, 400), (.5, .2, .6, 1))
-    gen_display_list(nc)
-    glEnd()
+#    glBegin(GL_LINE_STRIP)
+#    #dRect((0, 0), (400, 400), (.5, .2, .6, 1))
+#    gen_display_list(nc)
+#    glEnd()
 
  #   glBegin(GL_LINE_STRIP)
     #gen_display_list(nc)
    # glEnd()
     
-    #glCallList(rect)
+    glCallList(dlist)
     
     win.flip()
 
