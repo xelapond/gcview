@@ -164,9 +164,6 @@ def start_display_list():
     
     return dlist
 
-def end_display_list():
-    glEndList()
-
 def args2dict(args):
     '''
     Converts a G-Code argument list into a dictionary
@@ -194,29 +191,64 @@ def parse_line(line):
 def gen_display_list(lines):
     dlist = start_display_list()
     glBegin(GL_LINE_STRIP)
-    args = {'OX':0, 'OY':0, 'OZ':0, 'X':0, 'Y':0, 'Z':0}
+    args = {'X':0, 'Y':0, 'Z':0}
     for l in lines:
         #The 'e' represents the args and predicate from the expression
         epred, eargs = parse_line(l)
         args['OX'], args['OY'], args['OZ'], args['OC'] = args['X'], args['Y'], args['Z'], [epred, eargs]
         args = add_dict(args, eargs)
         if epred in fdict.keys():
-            #print 'Call'
-            #test(6)
             fdict[epred](args)
         else:
+            #This is just so I know what to implement
             print epred
             
     glEnd()
-    end_display_list()
+    glEndList()
     return dlist
 
-'''
-rect = glGenLists(1)
-glNewList(rect, GL_COMPILE)
-dRect((0, 0), (40, 40), (1, 0, 0, 1))
-glEndList()
-'''
+def on_mouse_drag(x, y, dx, dy, buttons, mods):
+    if buttons == 1:
+        #For panning
+        glTranslatef(dx, dy, 0)
+    if buttons == 4:
+        #Rotation.  Not sure why, maybe desirable in some obscure instances.
+        glRotatef(dx, 0, 0, 1)
+
+#TODO: Make this function do something
+def on_mouse_scroll(x, y, dx, dy):
+    #This will have to be a translation or a scale on the OpenGL Level
+    #as we calculate all the graphics at the beginning of the program
+    global zl
+    zl += 10*dy
+
+
+def on_draw(t, win, dlist):
+    win.clear()
+
+    glCallList(dlist)
+    
+    win.flip()
+
+
+if __name__ == '__main__':
+    #Get a G-Code file
+    file = open('sample/untitledtop.nc')
+    inp = file.read()
+
+
+    nc = filter(lambda x: x != '', remove_comments(inp).split('\n'))
+    dlist = gen_display_list(nc)
+
+    win = pyglet.window.Window(400, 400)
+    
+    win.on_mouse_drag = on_mouse_drag
+    win.on_mouse_scroll = on_mouse_scroll
+
+    pyglet.clock.schedule(on_draw, win, dlist)
+    pyglet.app.run()
+
+#This was the first on_draw before proper parsing and display lists
 '''
 def on_draw(*argarg):
     global win, nc
@@ -263,42 +295,3 @@ def on_draw(*argarg):
     
     win.flip()
 '''
-def on_mouse_drag(x, y, dx, dy, buttons, mods):
-    print buttons
-    if buttons == 1:
-        glTranslatef(dx, dy, 0)
-    if buttons == 4:
-        
-        glRotatef(dx, 0, 0, 1)
-
-def on_mouse_scroll(x, y, dx, dy):
-    global zl
-    print dy
-    zl += 10*dy
-
-
-def on_draw(t, win, dlist):
-    #global win, ne, dlist
-    win.clear()
-
-    glCallList(dlist)
-    
-    win.flip()
-
-
-if __name__ == '__main__':
-    #Get a G-Code file
-    file = open('sample/untitledtop.nc')
-    inp = file.read()
-
-
-    nc = filter(lambda x: x != '', remove_comments(inp).split('\n'))
-    dlist = gen_display_list(nc)
-
-    win = pyglet.window.Window(400, 400)
-    
-    win.on_mouse_drag = on_mouse_drag
-    win.on_mouse_scroll = on_mouse_scroll
-
-    pyglet.clock.schedule(on_draw, win, dlist)
-    pyglet.app.run()
