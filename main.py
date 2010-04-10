@@ -6,6 +6,8 @@ import re
 import pyglet
 from pyglet.gl import *
 
+
+
 '''
 Unfortunately the design of NC Code lends itself to a state machine, 
 so that's how this program works:/
@@ -16,7 +18,7 @@ Some G Codes:
 
 # Denotes a code that needs to be implemented
 
-G00 Rapid positioning
+#G00 Rapid positioning
 # G01 Linear interpolation
 # G02 CW circular interpolation
 # G03 CCW circular interpolation
@@ -70,6 +72,10 @@ G97 Constant Spindle speed
 G98/G99 Return to Initial Z plane/R plane in canned cycle
 
 '''
+
+#Global states:(
+absolute = True
+inches = True
 
 LERP_COLOR = (1, 1, 1, 1)
 RAPID_POS_COLOR = (1, 0, 0, 1)
@@ -240,7 +246,7 @@ if __name__ == '__main__':
     nc = filter(lambda x: x != '', remove_comments(inp).split('\n'))
     dlist = gen_display_list(nc)
 
-    win = pyglet.window.Window(400, 400)
+    win = pyglet.window.Window(800, 800)
     
     win.on_mouse_drag = on_mouse_drag
     win.on_mouse_scroll = on_mouse_scroll
