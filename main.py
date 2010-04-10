@@ -1,5 +1,4 @@
-from __future__ import division
-import random
+from __future__ import division #Necessary for some people that still use 2.5, can't hurt
 import sys
 import re
 
